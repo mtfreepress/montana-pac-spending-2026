@@ -1,0 +1,48 @@
+[
+  {
+    "raceSlug": "us-senate",
+    "finances": {
+      "results": [
+        {"candidate_name": "BODNAR, SETH", "candidate_id": "S6MT00287", "candidate_pcc_id": "C00941708"},
+        {"candidate_name": "ALME, KURT", "candidate_id": "S6MT00295", "candidate_pcc_id": "C00942060"},
+        {"candidate_name": "NEILL, REILLY", "candidate_id": "S6MT00238", "candidate_pcc_id": "C00892505"},
+        {"candidate_name": "AUSTIN, KYLE", "candidate_id": "S6MT00261", "candidate_pcc_id": "C00870352"},
+        {"candidate_name": "BANKHEAD, ALANI INES", "candidate_id": "S6MT00253", "candidate_pcc_id": "C00937201"},
+        {"candidate_name": "BLACKWOLF, MICHAEL JAMES MR.", "candidate_id": "S6MT00246", "candidate_pcc_id": "C00919936"},
+        {"candidate_name": "HUMMERT, MICHAEL", "candidate_id": "S4MT00217", "candidate_pcc_id": "C00873166"},
+        {"candidate_name": "KEHOE, CHRISTOPHER", "candidate_id": "S6MT00303", "candidate_pcc_id": "C00943530"},
+        {"candidate_name": "WALKINGCHILD, CHARLES SR", "candidate_id": "S4MT00209", "candidate_pcc_id": "C00869545"},
+        {"candidate_name": "MCLAUGHLIN, KATE", "candidate_id": "S6MT00279", "candidate_pcc_id": "C00923698"},
+        {"candidate_name": "JANDRON, TOM", "candidate_id": "S6MT00311", "candidate_pcc_id": "C00944215"},
+        {"candidate_name": "WOODMAN, JAMI DEE", "candidate_id": null}
+      ]
+    }
+  },
+  {
+    "raceSlug": "us-house-1",
+    "finances": {
+      "results": [
+        {"candidate_name": "FORSTAG, SAMUEL KELLEY", "candidate_id": "H6MT01137", "candidate_pcc_id": "C00932822"},
+        {"candidate_name": "FLINT, AARON", "candidate_id": "H6MT01152", "candidate_pcc_id": "C00941575"},
+        {"candidate_name": "BUSSE, RYAN", "candidate_id": "H6MT01145", "candidate_pcc_id": "C00933473"},
+        {"candidate_name": "JACOBSEN, CHRISTI", "candidate_id": "H6MT01160", "candidate_pcc_id": "C00941583"},
+        {"candidate_name": "CLEVELAND, RUSSELL TYLER", "candidate_id": "H6MT01103", "candidate_pcc_id": "C00902395"},
+        {"candidate_name": "OLSZEWSKI, ALBERT", "candidate_id": "H2MT02084", "candidate_pcc_id": "C00783381"},
+        {"candidate_name": "RAINS, MATTHEW", "candidate_id": "H0MT00116", "candidate_pcc_id": "C00924258"}
+      ]
+    }
+  },
+  {
+    "raceSlug": "us-house-2",
+    "finances": {
+      "results": [
+        {"candidate_name": "DOWNING, TROY", "candidate_id": "H4MT02098", "candidate_pcc_id": "C00855288"},
+        {"candidate_name": "EISENHAUER, MICHAEL D. DR.", "candidate_id": "H6MT02168", "candidate_pcc_id": "C00930750"},
+        {"candidate_name": "MILLER, BRIAN JAMES", "candidate_id": "H6MT02150", "candidate_pcc_id": "C00922831"},
+        {"candidate_name": "LUX, SAM", "candidate_id": "H6MT02143", "candidate_pcc_id": "C00913327"},
+        {"candidate_name": "MCCRACKEN, PATRICK NEAL MR.", "candidate_id": "H6MT02176", "candidate_pcc_id": "C00942367"},
+        {"candidate_name": "WINDY BOY, JONATHAN MR.", "candidate_id": "H6MT02226", "candidate_pcc_id": "C00941757"}
+      ]
+    }
+  }
+]
