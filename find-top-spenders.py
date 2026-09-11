@@ -15,6 +15,11 @@ LEADERSHIP_CANDIDATE_REPORTS = {
     "H4MT02098": "leadership-fund-to-downing.csv",
     "H6MT01152": "leadership-fund-to-flint.csv",
 }
+PAC_CANDIDATE_REPORTS = {
+    candidate_id: "pac-to-" + filename.rsplit("-to-", 1)[1]
+    for candidate_id, filename in LEADERSHIP_CANDIDATE_REPORTS.items()
+}
+PAC_CANDIDATE_REPORTS["H6MT01137"] = "pac-to-forstag.csv"
 SENATE_CANDIDATES = {
     "S6MT00295": ("Kurt Alme", "R"),
     "S6MT00287": ("Seth Bodnar", "I"),
@@ -31,6 +36,23 @@ OVERALL_CANDIDATE_PARTIES = {
     "H6MT02168": "I",  # Michael D. Eisenhauer
     "H6MT01145": "D",  # Ryan Busse
     "H6MT01160": "R",  # Christi Jacobsen
+}
+GENERAL_CANDIDATE_PARTIES = {
+    "H6MT01137": "D",  # Sam Forstag
+    "H6MT01152": "R",  # Aaron Flint
+    "S6MT00295": "R",  # Kurt Alme
+    "H4MT02098": "R",  # Troy Downing
+    "S6MT00287": "I",  # Seth Bodnar
+    "H6MT02168": "I",  # Michael Eisenhauer
+    "S6MT00261": "L",  # Kyle Austin
+}
+PARTY_TOTAL_CANDIDATE_PARTIES = {
+    **OVERALL_CANDIDATE_PARTIES,
+    **GENERAL_CANDIDATE_PARTIES,
+    "H6MT01103": "D",  # Russell Cleveland
+    "H6MT02143": "D",  # Sam Lux
+    "H0MT00116": "D",  # Matthew Rains
+    "H2MT02084": "R",  # Albert Olszewski
 }
 
 
@@ -140,12 +162,12 @@ def write_top_twenty_senate(path, groups):
     print(f"{path}: {count:,} rows ({len(top_ids)} PACs)")
 
 
-def write_top_twenty_overall(path, groups):
-    """Select the top 20 committees across races and split amounts by party."""
+def write_top_overall(path, groups, limit):
+    """Select the top committees across races and split amounts by party."""
     totals = {}
     for (committee_id, _), group in groups.items():
         totals[committee_id] = totals.get(committee_id, Decimal("0")) + group["total"]
-    top_ids = sorted(totals, key=lambda committee_id: (-totals[committee_id], committee_id))[:20]
+    top_ids = sorted(totals, key=lambda committee_id: (-totals[committee_id], committee_id))[:limit]
     fields = ["CMTE_ID", "PAC", "SPONSOR_NAME", "AMOUNT", "PARTY"]
     count = 0
     with path.open("w", encoding="utf-8", newline="") as destination:
@@ -168,6 +190,16 @@ def write_top_twenty_overall(path, groups):
                 })
                 count += 1
     print(f"{path}: {count:,} rows ({len(top_ids)} PACs)")
+
+
+def write_party_totals(path, totals):
+    """Write dollar totals by recipient party, largest amount first."""
+    with path.open("w", encoding="utf-8", newline="") as destination:
+        writer = csv.DictWriter(destination, fieldnames=["party", "amount"])
+        writer.writeheader()
+        for party, amount in sorted(totals.items(), key=lambda item: (-item[1], item[0])):
+            writer.writerow({"party": party, "amount": format(amount, ".2f")})
+    print(f"{path}: {len(totals)} rows")
 
 
 def main():
@@ -203,12 +235,14 @@ def main():
 
         leadership = {}
         leadership_by_candidate = {candidate_id: {} for candidate_id in LEADERSHIP_CANDIDATE_REPORTS}
-        pacs_by_candidate = {candidate_id: {} for candidate_id in LEADERSHIP_CANDIDATE_REPORTS}
+        pacs_by_candidate = {candidate_id: {} for candidate_id in PAC_CANDIDATE_REPORTS}
         combined_by_candidate = {candidate_id: {} for candidate_id in LEADERSHIP_CANDIDATE_REPORTS}
         pacs = {}
         senate = {}
         overall = {}
         recipients = {}
+        party_totals = {party: Decimal("0") for party in GENERAL_CANDIDATE_PARTIES.values()}
+        general_party_totals = party_totals.copy()
         for row, amount in campaign_rows:
             candidate = by_id.get(row["CAND_ID"]) or by_committee.get(row["OTHER_ID"])
             if candidate is None:
@@ -221,16 +255,26 @@ def main():
             is_leadership = leadership_name not in ("", "#N/A")
             is_pac = leadership_name == "#N/A" and pac_name not in ("", "#N/A")
             candidate_id = candidate["candidate_id"]
-            if candidate_id in combined_by_candidate and (is_leadership or is_pac):
+            recipient_party = PARTY_TOTAL_CANDIDATE_PARTIES.get(candidate_id)
+            if recipient_party is None:
+                raise ValueError(
+                    f"Missing party label for {candidate['candidate_name']} ({candidate_id}); "
+                    "add it to PARTY_TOTAL_CANDIDATE_PARTIES before generating reports"
+                )
+            party_totals[recipient_party] += amount
+            if candidate_id in GENERAL_CANDIDATE_PARTIES:
+                general_party_totals[recipient_party] += amount
+            if is_leadership or is_pac:
                 donor_labels = {
                     "CMTE_ID": row["CMTE_ID"],
                     "PAC_NAME": leadership_name if is_leadership else pac_name,
                     "SPONSOR_NAME": row["Sponsor Name"],
                 }
-                add_transaction(
-                    combined_by_candidate[candidate_id], row["CMTE_ID"], donor_labels, amount
-                )
-                if is_pac:
+                if candidate_id in combined_by_candidate:
+                    add_transaction(
+                        combined_by_candidate[candidate_id], row["CMTE_ID"], donor_labels, amount
+                    )
+                if is_pac and candidate_id in pacs_by_candidate:
                     add_transaction(
                         pacs_by_candidate[candidate_id], row["CMTE_ID"], donor_labels, amount
                     )
@@ -271,8 +315,13 @@ def main():
         parser.error(str(error))
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    write_party_totals(args.output_dir / "total-donations-by-party.csv", party_totals)
+    write_party_totals(
+        args.output_dir / "total-donations-by-party-general-only.csv", general_party_totals
+    )
     write_top_twenty_senate(args.output_dir / "topTwentySenate.csv", senate)
-    write_top_twenty_overall(args.output_dir / "topTwentyOverall.csv", overall)
+    write_top_overall(args.output_dir / "topTwentyOverall.csv", overall, 20)
+    write_top_overall(args.output_dir / "top-50-spenders.csv", overall, 50)
     write_ranking(
         args.output_dir / "leadership-funds.csv", leadership,
         ["CMTE_ID", "LEADERSHIP_PAC", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",
@@ -283,14 +332,16 @@ def main():
             ["CMTE_ID", "LEADERSHIP_PAC", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",
         )
         candidate_slug = filename.rsplit("-to-", 1)[1]
-        for prefix, groups in (
-            ("pac", pacs_by_candidate[candidate_id]),
-            ("pac-and-leadership", combined_by_candidate[candidate_id]),
-        ):
-            write_ranking(
-                args.output_dir / f"{prefix}-to-{candidate_slug}", groups,
-                ["CMTE_ID", "PAC_NAME", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",
-            )
+        write_ranking(
+            args.output_dir / f"pac-and-leadership-to-{candidate_slug}",
+            combined_by_candidate[candidate_id],
+            ["CMTE_ID", "PAC_NAME", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",
+        )
+    for candidate_id, filename in PAC_CANDIDATE_REPORTS.items():
+        write_ranking(
+            args.output_dir / filename, pacs_by_candidate[candidate_id],
+            ["CMTE_ID", "PAC_NAME", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",
+        )
     write_ranking(
         args.output_dir / "pacs.csv", pacs,
         ["CMTE_ID", "PAC_NAME", "SPONSOR_NAME"], "TOTAL_TRANSACTIONS",

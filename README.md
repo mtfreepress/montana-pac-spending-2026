@@ -72,7 +72,7 @@ To generate spending rankings after filtering, run:
 python3 find-top-spenders.py
 ```
 
-This script also uses only the standard library. It writes seventeen reports, sorted
+This script also uses only the standard library. It writes twenty-one reports, sorted
 by cumulative `TRANSACTION_AMT` from highest to lowest:
 
 - `analysis/leadership-funds.csv`: leadership PAC donations into Montana races
@@ -122,6 +122,12 @@ dollar total and then committee ID. Missing labels remain `#N/A`. Candidate
 matching, name formatting, decimal amounts, and transaction handling follow the
 existing reports.
 
+`analysis/pac-to-forstag.csv` applies the same PAC-only filter, columns, and
+ranking to Sam Forstag (`H6MT01137`), listed in the candidate data as
+`FORSTAG, SAMUEL KELLEY`. Candidate matching also falls back to his campaign
+committee ID (`C00932822`). As with the other `pac-to-` reports, leadership
+PAC donations are excluded.
+
 `analysis/topTwentySenate.csv` combines both PAC categories for Kurt Alme (R),
 Seth Bodnar (I), and Alani Bankhead (D), using those supplied party labels and
 display names. It selects the 20 donating committees with the largest combined
@@ -148,6 +154,33 @@ The existing PAC eligibility and transaction summation rules apply. No donations
 to Bankhead or Miller appear in the current input. The current top 20 all gave
 to Republican recipients; including the other Montana candidates in the input
 would produce the same top 20 and amounts.
+
+`analysis/top-50-spenders.csv` uses the same candidates, ranking, party breakdown,
+and columns as `topTwentyOverall.csv`, expanded to the top 50 donating committees.
+Each committee has one row per recipient party, so the file can exceed 50 rows.
+
+Two graphic-ready party totals use columns `party,amount`, sorted by descending
+amount, with dollar amounts to two decimal places:
+
+- `analysis/total-donations-by-party.csv`: all transactions in the campaign
+  input, including donations to primary candidates and both PAC categories.
+- `analysis/total-donations-by-party-general-only.csv`: the same calculation
+  restricted to the supplied general-election candidates: Sam Forstag (D);
+  Aaron Flint, Kurt Alme, and Troy Downing (R); Seth Bodnar and Michael
+  Eisenhauer (I); and Kyle Austin (L). This is a candidate filter, not a filter
+  on transaction dates or election designations.
+
+The overall report additionally includes Ryan Busse, Russell Cleveland, Sam Lux,
+and Matthew Rains (D), and Christi Jacobsen and Albert Olszewski (R). Existing
+party labels for Alani Bankhead and Brian James Miller (D) are also retained;
+neither has transactions in the current input. Parties describe recipients,
+using the supplied labels. Both reports use the same candidate ID resolution
+and campaign committee fallback as `by-candidate.csv`, and their totals include
+every input transaction for the selected candidates. Candidates with no input
+transactions contribute nothing; a transaction for a candidate without a known
+party label stops report generation so its party can be assigned explicitly.
+All four parties are included even if their total is zero. Negative transactions
+are retained: Kyle Austin currently nets to -$1,000, so the L total is negative.
 
 All rankings use `--campaign-input` (default:
 `output/montana-campaign-donations.csv`). The leadership report currently covers
