@@ -72,7 +72,7 @@ To generate spending rankings after filtering, run:
 python3 find-top-spenders.py
 ```
 
-This script also uses only the standard library. It writes seven reports, sorted
+This script also uses only the standard library. It writes seventeen reports, sorted
 by cumulative `TRANSACTION_AMT` from highest to lowest:
 
 - `analysis/leadership-funds.csv`: leadership PAC donations into Montana races
@@ -104,6 +104,50 @@ Four additional reports use the same columns and leadership-value filter as
 These reports use the same candidate ID resolution and campaign committee
 fallback as `by-candidate.csv`. Each PAC's total includes only its transactions
 for that candidate. A report with no matches contains just the column headers.
+
+Each of these four candidates also has two reports (`{candidate}` is `bodnar`,
+`alme`, `downing`, or `flint`):
+
+- `analysis/pac-to-{candidate}.csv`: other PAC donations only, using the same
+  eligibility filter as `pacs.csv` (`Leadership Pacs` is `#N/A` and `PAC Name`
+  is populated and not `#N/A`).
+- `analysis/pac-and-leadership-to-{candidate}.csv`: both other PAC and leadership
+  fund donations, including each eligible transaction once.
+
+Both use columns `CMTE_ID,PAC_NAME,SPONSOR_NAME,TOTAL_TRANSACTIONS` and group by
+donating `CMTE_ID`, like the candidate leadership reports. `PAC_NAME` uses the
+leadership fund name for leadership transactions and the PAC name otherwise.
+They include all qualifying donors, with no top-20 limit, sorted by descending
+dollar total and then committee ID. Missing labels remain `#N/A`. Candidate
+matching, name formatting, decimal amounts, and transaction handling follow the
+existing reports.
+
+`analysis/topTwentySenate.csv` combines both PAC categories for Kurt Alme (R),
+Seth Bodnar (I), and Alani Bankhead (D), using those supplied party labels and
+display names. It selects the 20 donating committees with the largest combined
+amounts for these three candidates, breaking ties by `CMTE_ID` ascending. Each
+selected committee has one row per recipient, so the report can exceed 20 rows
+when a committee gives to multiple selected candidates. Columns are
+`CMTE_ID,PAC,SPONSOR_NAME,AMOUNT,CANDIDATE,PARTY`. Missing sponsors are written as
+`0`. Candidate matching, PAC eligibility, and transaction summation follow the
+other reports. With the current input, 33 PACs tie at $10,000; the first 20 by
+committee ID are included. There are no matching donations to Bankhead.
+
+`analysis/topTwentyOverall.csv` combines PAC and leadership fund donations
+across races to Aaron Flint, Troy Downing, Kurt Alme, and Christi Jacobsen (R);
+Alani Bankhead, Samuel Kelley Forstag, Brian James Miller, and Ryan Busse (D);
+and Seth Bodnar and Michael
+D. Eisenhauer (I). These are the user-supplied party labels, matched by candidate
+ID with the same campaign committee fallback as the other reports. It selects
+the top 20 donating committees by their combined amounts to these candidates,
+breaking ties by `CMTE_ID` ascending, then writes one row per committee and
+recipient party. A committee giving to multiple parties can therefore produce
+multiple rows. Columns are `CMTE_ID,PAC,SPONSOR_NAME,AMOUNT,PARTY`; missing
+sponsors are `0`. `PARTY` describes the recipients, not the PAC's affiliation.
+The existing PAC eligibility and transaction summation rules apply. No donations
+to Bankhead or Miller appear in the current input. The current top 20 all gave
+to Republican recipients; including the other Montana candidates in the input
+would produce the same top 20 and amounts.
 
 All rankings use `--campaign-input` (default:
 `output/montana-campaign-donations.csv`). The leadership report currently covers
